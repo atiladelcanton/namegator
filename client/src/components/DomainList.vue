@@ -20,12 +20,21 @@
 								<li class="list-group-item" v-for="domain in domains" :key="domain.name">
 									<div class="row">
 										<div class="col-md">
-											{{domain.name}}
+											<div class="col-md-6">
+												{{domain.name}}
+											</div>
+											<div class="col-md-3">
+												<span class="badge badge-info">{{(domain.available) ? "Disponível" : "Indisponivel"}}</span>
+											</div>
 										</div>
-										<div class="col-md text-right">
+										<div class="col-md-3 text-right">
 												<a  :href="domain.checkout" target="_blank" class="btn btn-info">
 													<span class="fa fa-shopping-cart"></span>
 												</a>
+												&nbsp;
+												<button class="btn btn-info" @click="opendDomain(domain)">
+													<span class="fa fa-search"></span>
+												</button>
 										</div>
 									</div>
 								</li>
@@ -50,7 +59,8 @@ export default {
 			items:	{
 				prefix:	[],
 				sufix:	[],
-			}
+			},
+			domains:[]
 		};
 	},
 	methods:{
@@ -78,10 +88,10 @@ export default {
 					const query	=	response.data;
 					const	newItem	=	query.data.newItem;
 					this.items.[item.type].push(newItem);
+					this.generateDomains();
 				});
 		},
 		deleteItem(item){
-
 			axios({
 				url:"http://localhost:4000",
 				method: "post",
@@ -96,12 +106,13 @@ export default {
 					}
 				}
 			}).then(() => {
-				this.getItems(item.type);
+				this.items[item.type].splice(this.items[item.type].indexOf(item),1);
+				this.generateDomains();
 			});
 		},
 
 		getItems(type){
-			axios({
+			return	axios({
 				url:"http://localhost:4000",
 				method: "post",
 				data:{
@@ -124,26 +135,42 @@ export default {
 					this.items.[type] = query.data.items;
 				});
 		},
+		generateDomains(){
+			axios({
+				url:"http://localhost:4000",
+				method: "post",
+				data:{
+					query:
+						`
+							mutation	{
+									domains: generateDomains{
+										name
+										checkout
+										available
+									}
+							}
+						`
+				}
+			}).then((response) => {
+				const query = response.data;
+				this.domains = query.data.domains;
+			});
+		},
+		opendDomain(domain){
+			this.$router.push({
+				path: `/domains/${domain.name}`
+			});
+		},
 		
 	},
-	computed:{
-		domains()  {
-			const domains = [];
-			for(const prefix of this.items.prefix)
-			{
-				for(const sufix of this.items.sufix){
-					const name = prefix.description+sufix.description;
-					const url = name.toLowerCase();
-					const checkout = `https://checkout.hostgator.com.br/?a=add&sld=${url}&tld.com.br`;
-					domains.push({name,checkout});
-				}
-			}
-			return domains;
-		}
-	},
 	created(){
-		this.getItems("prefix");
-		this.getItems("sufix");
+		Promise.all([
+			this.getItems("prefix"),
+			this.getItems("sufix")
+		]).then(()=>{
+			this.generateDomains();
+		});
+	
 	}
 };
 </script>
