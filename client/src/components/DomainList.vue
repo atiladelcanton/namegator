@@ -16,7 +16,8 @@
 					<h5>Domínios  <span class="badge badge-info">{{domains.length}}</span></h5>
 					<div class="card">
 						<div class="card-body">
-							<ul class="list-group">
+							<h3 v-show="isLoading"><small><code>Consultando Dominios...</code></small></h3>
+							<ul class="list-group" v-show="!isLoading">
 								<li class="list-group-item" v-for="domain in domains" :key="domain.name">
 									<div class="row">
 										<div class="col-md">
@@ -51,11 +52,12 @@ import {mapState, mapActions} from "vuex";
 import	AppItemList from "./AppItemList";
 export default {
 	name: "DomainList",
+
 	components:{
 		AppItemList
 	},
 	data: function(){
-		return {	};
+		return { };
 	},
 	methods:{
 		...mapActions(["addItem", "deleteItem", "getItems", "generateDomains"]),
@@ -67,7 +69,7 @@ export default {
 		
 	},
 	computed:{
-		...mapState(["items","domains"])
+		...mapState(["items","domains","isLoading"])
 	}
 };
 </script>

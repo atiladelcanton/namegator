@@ -15,12 +15,14 @@ const store = new Vuex.Store({
 			prefix:	[],
 			sufix:	[],
 		},
-		domains:[]
+		domains:[],
+		isLoading:true,
 	},
 	mutations:{
 		addItem(state,payload)	{
 			const {item,newItem} = payload;
 			state.items.[item.type].push(newItem);
+
 		},
 		deleteItem(state,payload){
 			const {item} = payload;
@@ -33,12 +35,13 @@ const store = new Vuex.Store({
 		setDomains(state,payload){
 			const {domains} = payload;
 			state.domains = domains;
+			state.isLoading = false;
 		}
 	},
 	actions:{
 		async addItem(context,	payload){
 			const item = payload;
-
+			context.state.isLoading = true;
 			axios({
 				url:"http://localhost:4000",
 				method: "post",
@@ -66,6 +69,7 @@ const store = new Vuex.Store({
 		},
 		async deleteItem(context,	payload){
 			const item = payload;
+			context.state.isLoading = true;
 			axios({
 				url:"http://localhost:4000",
 				method: "post",
